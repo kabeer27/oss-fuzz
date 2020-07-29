@@ -1,4 +1,5 @@
-# Copyright 2016 Google Inc.
+#!/bin/bash -eu
+# Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +15,11 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt-get install -y libz-dev autoconf mercurial
-RUN hg clone https://hg.ucc.asn.au/dropbear dropbear
-RUN hg clone https://hg.ucc.asn.au/dropbear-fuzzcorpus dropbear/corpus
-WORKDIR dropbear
-COPY build.sh *.options $SRC/
+# generate build env and build assimp
+cmake CMakeLists.txt -G "Ninja" -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_ZLIB=ON -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DASSIMP_BUILD_SAMPLES=OFF
+cmake --build .
 
+# build the fuzzer
+$CXX $CXXFLAGS -std=c++11 -I$SRC/assimp/include \
+	fuzz/assimp_fuzzer.cc -o $OUT/assimp_fuzzer \
+	$LIB_FUZZING_ENGINE $SRC/assimp/lib/libassimp.a $SRC/assimp/lib/libIrrXML.a $SRC/assimp/lib/libzlibstatic.a

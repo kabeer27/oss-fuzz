@@ -1,4 +1,4 @@
-# Copyright 2017 Google Inc.
+# Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,25 +14,11 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-sanitizer-libs-builder
-ENV PYTHONUNBUFFERED 1
-RUN msan_build.py --work-dir=$WORK \
-    libarchive13 \
-    libattr1 \
-    libbz2-1.0 \
-    libfontconfig1 \
-    libfreetype6 \
-    libfribidi0 \
-    libglib2.0-0 \
-    libicu55  \
-    liblz4-1 \
-    liblzma5 \
-    liblzo2-2 \
-    libnettle6 \
-    libpcre2-posix0 \
-    libpcre3 \
-    libpng12-0 \
-    libssl1.0.0 \
-    libxml2 \
-    zlib1g \
-    /msan
+FROM gcr.io/oss-fuzz-base/base-builder
+RUN apt-get update && apt-get install -y cmake libtool make
+
+RUN git clone --depth 1 https://github.com/google/brunsli.git && \
+    cd brunsli && \
+    git submodule update --init --depth 1
+WORKDIR brunsli
+COPY build.sh $SRC/

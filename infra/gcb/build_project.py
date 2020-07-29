@@ -58,6 +58,8 @@ DEFAULT_SANITIZERS = ['address', 'undefined']
 LATEST_VERSION_FILENAME = 'latest.version'
 LATEST_VERSION_CONTENT_TYPE = 'text/plain'
 
+QUEUE_TTL_SECONDS = 60 * 60 * 24  # 24 hours.
+
 
 def usage():
   """Exit with code 1 and display syntax to use this file."""
@@ -98,7 +100,7 @@ def get_sanitizers(project_yaml):
     if isinstance(sanitizer, six.string_types):
       processed_sanitizers.append(sanitizer)
     elif isinstance(sanitizer, dict):
-      for key in sanitizer.iterkeys():
+      for key in sanitizer.keys():
         processed_sanitizers.append(key)
 
   return processed_sanitizers
@@ -139,7 +141,7 @@ def get_build_steps(project_name, project_yaml_file, dockerfile_lines,
   build_steps = build_lib.project_image_steps(name, image, language)
   # Copy over MSan instrumented libraries.
   build_steps.append({
-      'name': 'gcr.io/{0}/msan-builder'.format(base_images_project),
+      'name': 'gcr.io/{0}/msan-libs-builder'.format(base_images_project),
       'args': [
           'bash',
           '-c',
@@ -224,7 +226,7 @@ def get_build_steps(project_name, project_yaml_file, dockerfile_lines,
           # Patch dynamic libraries to use instrumented ones.
           build_steps.append({
               'name':
-                  'gcr.io/{0}/msan-builder'.format(base_images_project),
+                  'gcr.io/{0}/msan-libs-builder'.format(base_images_project),
               'args': [
                   'bash',
                   '-c',
@@ -399,6 +401,7 @@ def run_build(build_steps, project_name, tag):
       'options': options,
       'logsBucket': GCB_LOGS_BUCKET,
       'tags': [project_name + '-' + tag,],
+      'queueTtl': str(QUEUE_TTL_SECONDS) + 's',
   }
 
   credentials = GoogleCredentials.get_application_default()

@@ -1,4 +1,4 @@
-# Copyright 2016 Google Inc.
+# Copyright 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
 ################################################################################
 
 FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt-get install -y libz-dev autoconf mercurial
-RUN hg clone https://hg.ucc.asn.au/dropbear dropbear
-RUN hg clone https://hg.ucc.asn.au/dropbear-fuzzcorpus dropbear/corpus
-WORKDIR dropbear
-COPY build.sh *.options $SRC/
-
+RUN go get github.com/radondb/radon/src/fuzz/sqlparser
+COPY build.sh $SRC/
+WORKDIR $SRC/

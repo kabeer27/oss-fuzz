@@ -1,4 +1,4 @@
-# Copyright 2016 Google Inc.
+# Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
 ################################################################################
 
 FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt-get install -y libz-dev autoconf mercurial
-RUN hg clone https://hg.ucc.asn.au/dropbear dropbear
-RUN hg clone https://hg.ucc.asn.au/dropbear-fuzzcorpus dropbear/corpus
-WORKDIR dropbear
-COPY build.sh *.options $SRC/
+RUN apt-get update && apt-get install -y cmake ninja-build
+RUN git clone --depth 1 --recursive https://github.com/assimp/assimp.git
+WORKDIR assimp
+COPY build.sh $SRC/
 
